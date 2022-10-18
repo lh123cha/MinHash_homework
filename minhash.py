@@ -8,14 +8,12 @@ from heapq import heappop, heappush
 import sys
 
 numDocs=20
-# dataFile = "./data/articles_" + str(numDocs) + ".train"
-truthFile = "./data/articles_" + str(numDocs) + ".truth"
+numhashes=100
 dataFile = "./data/en_articles.train"
 
 
 class MinHash(object):
-    def __init__(self,documents,numhashes,numdocs):
-        self.documents=documents
+    def __init__(self,numhashes,numdocs):
         self.numhashes = numhashes
         self.numdocs = numdocs
         self.docNames =[]
@@ -195,7 +193,7 @@ class MinHash(object):
                     J = (len(s1.intersection(s2)) / len(s1.union(s2)))
 
                     print("  %5s --> %5s   %.2f     %.2f" % (self.docNames[i], self.docNames[j], estJ, J))
-mh = MinHash(0,100,20)
+mh = MinHash(0,numhashes,numDocs)
 mh.convert_document_to_shingles()
 mh.Generate_MinHash_Signatures()
 mh.Compare_All_Signatures()
