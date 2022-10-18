@@ -19,8 +19,6 @@ class MinHash(object):
         self.numhashes = numhashes
         self.numdocs = numdocs
         self.docNames =[]
-        # Create a dictionary of the articles, mapping the article identifier (e.g.,
-        # "t8470") to the list of shingle IDs that appear in the document.
         self.docsAsShingleSets={}
         self.signatures=[]
         self.JSim=[]
@@ -50,8 +48,7 @@ class MinHash(object):
 
         for i in range(0, numDocs):
 
-            # Read all of the words (they are all on one line) and split them by white
-            # space.
+            # Read all of the words (they are all on one line) and split them by white space.
             words = f.readline().split(" ")
 
             # Retrieve the article ID, which is the first word on the line.
@@ -69,28 +66,18 @@ class MinHash(object):
 
             # For each word in the document...
             for index in range(0, len(words) - 2):
-                # Construct the shingle text by combining three words together.
                 shingle = words[index] + " " + words[index + 1] + " " + words[index + 2]
 
                 # Hash the shingle to a 32-bit integer.
                 crc = binascii.crc32(str.encode(shingle)) & 0xffffffff
 
-                # Add the hash value to the list of shingles for the current document.
-                # Note that set objects will only add the value to the set if the set
-                # doesn't already contain it.
                 shinglesInDoc.add(crc)
-
-            # Store the completed list of shingles for this document in the dictionary.
             self.docsAsShingleSets[docID] = shinglesInDoc
-
-            # Count the number of shingles across all documents.
             totalShingles = totalShingles + (len(words) - 2)
-        # Close the data file.
         f.close()
 
         # Report how long shingling took.
         print('\nShingling ' + str(numDocs) + ' docs took %.2f sec.' % (time.time() - t0))
-
 
         print('\nAverage shingles per doc: %.2f' % (totalShingles / numDocs))
 
@@ -143,11 +130,9 @@ class MinHash(object):
         print("Generating MinHash signutures finished\n")
     #生成上三角矩阵索引
     def getTriangleIndex(self,i,j):
-        # If i == j that's an error.
         if i == j:
             sys.stderr.write("Can't access triangle matrix with i == j")
             sys.exit(1)
-        # If j < i just swap the values.
         if j < i:
             temp = i
             i = j
@@ -195,35 +180,21 @@ class MinHash(object):
         print("Jaccard similarity.\n")
         print("                   Est. J   Act. J")
 
-        # For each of the document pairs...
+
+
+        for i in range(0,numDocs):
+            for j in range(i+1,numDocs):
+
+
         for i in range(0, numDocs):
             for j in range(i + 1, numDocs):
-                # Retrieve the estimated similarity value for this pair.
                 estJ = self.estJSim[self.getTriangleIndex(i, j)]
-
-                # If the similarity is above the threshold...
                 if estJ > threshold:
-
-                    # Calculate the actual Jaccard similarity for validation.
                     s1 = self.docsAsShingleSets[self.docNames[i]]
                     s2 = self.docsAsShingleSets[self.docNames[j]]
                     J = (len(s1.intersection(s2)) / len(s1.union(s2)))
 
-                    # Print out the match and similarity values with pretty spacing.
                     print("  %5s --> %5s   %.2f     %.2f" % (self.docNames[i], self.docNames[j], estJ, J))
-
-                    # Check whether this is a true positive or false positive.
-                    # We don't need to worry about counting the same true positive twice
-                    # because we implemented the for-loops to only compare each pair once.
-                    # if plagiaries[docNames[i]] == docNames[j]:
-                    #     tp = tp + 1
-                    # else:
-                    #     fp = fp + 1
-
-        # Display true positive and false positive counts.
-
-
-
 mh = MinHash(0,100,20)
 mh.convert_document_to_shingles()
 mh.Generate_MinHash_Signatures()
