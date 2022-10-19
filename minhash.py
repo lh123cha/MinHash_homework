@@ -8,7 +8,7 @@ from heapq import heappop, heappush
 import sys
 
 numDocs=20
-numhashes=100
+numhashes=20
 dataFile = "./data/en_articles.train"
 
 
@@ -35,34 +35,19 @@ class MinHash(object):
         # value.
         curShingleID = 0
 
-
-
-        # Open the data file.
         f = open(dataFile, "r",encoding="utf-8")
-
-        t0 = time.time()
 
         totalShingles = 0
 
         for i in range(0, numDocs):
-
-            # Read all of the words (they are all on one line) and split them by white space.
             words = f.readline().split(" ")
-
-            # Retrieve the article ID, which is the first word on the line.
             docID = words[0]
 
-            # Maintain a list of all document IDs.
             self.docNames.append(docID)
 
             del words[0]
-
-            # 'shinglesInDoc' will hold all of the unique shingle IDs present in the
-            # current document. If a shingle ID occurs multiple times in the document,
-            # it will only appear once in the set (this is a property of Python sets).
             shinglesInDoc = set()
 
-            # For each word in the document...
             for index in range(0, len(words) - 2):
                 shingle = words[index] + " " + words[index + 1] + " " + words[index + 2]
 
@@ -73,11 +58,6 @@ class MinHash(object):
             self.docsAsShingleSets[docID] = shinglesInDoc
             totalShingles = totalShingles + (len(words) - 2)
         f.close()
-
-        # Report how long shingling took.
-        print('\nShingling ' + str(numDocs) + ' docs took %.2f sec.' % (time.time() - t0))
-
-        print('\nAverage shingles per doc: %.2f' % (totalShingles / numDocs))
 
 # =============================================================================
 #                 Generate MinHash Signatures
@@ -124,7 +104,6 @@ class MinHash(object):
                 signature.append(minHashCode)
 
             self.signatures.append(signature)
-        print(self.signatures[0])
         print("Generating MinHash signutures finished\n")
     #生成上三角矩阵索引
     def getTriangleIndex(self,i,j):
@@ -145,6 +124,29 @@ class MinHash(object):
         self.JSim=[0 for x in range(numElems)]
         self.estJSim = [0 for x in range(numElems)]
 
+    # =============================================================================
+    #                 Calculate Jaccard Similarities
+    # =============================================================================
+    #计算真实的jaccard相似度
+    def Calculate_Jaccard_Similarities(self):
+        # if True:
+        print("\nCalculating Jaccard Similarities...")
+
+        # For every document pair...
+        for i in range(0, self.numdocs):
+            s1 = self.docsAsShingleSets[self.docNames[i]]
+
+            for j in range(i + 1, self.numdocs):
+                # Retrieve the set of shingles for document j.
+                s2 = self.docsAsShingleSets[self.docNames[j]]
+
+                # Calculate and store the actual Jaccard similarity.
+                self.JSim[self.getTriangleIndex(i, j)] = (len(s1.intersection(s2)) / len(s1.union(s2)))
+
+    # =============================================================================
+    #                 Compare All Signatures
+    # =============================================================================
+    #使用签名估计相似度
     def Compare_All_Signatures(self):
         self.Triangle_Mactrices()
         print("Comparing add signatures\n")
@@ -159,43 +161,38 @@ class MinHash(object):
                 for k in range(0,self.numhashes):
                     count = count+(signature1[k]==signature2[k])
                 self.estJSim[self.getTriangleIndex(i,j)]=(count/self.numhashes)
-                print(self.estJSim[self.getTriangleIndex(i,j)])
         print("Compare signatures finished!\n")
-    def display(self):
-        # =============================================================================
-        #                   Display Similar Document Pairs
-        # =============================================================================
 
-        # Count the true positives and false positives.
-        tp = 0
-        fp = 0
+    def Get_Top_five_files(self):
+        estJim_dict={}
+        Jim_dict={}
+        for i in range(self.numdocs):
+            for j in range(i+1,self.numdocs):
+                estJim_key = self.docNames[i] +" "+self.docNames[j]
+                estJim_dict[estJim_key]=self.estJSim[self.getTriangleIndex(i,j)]
 
-        top_five_file = {}
+        top5_estJim_files = sorted(estJim_dict.items(), key=lambda x: x[1],reverse=True)
+        print(top5_estJim_files[0:5])
 
-        threshold = 0.05
-        print("\nList of Document Pairs with J(d1,d2) more than", threshold)
-        print("Values shown are the estimated Jaccard similarity and the actual")
-        print("Jaccard similarity.\n")
-        print("                   Est. J   Act. J")
+        for i in range(self.numdocs):
+            for j in range(i+1,self.numdocs):
+                Jim_key = self.docNames[i] +" "+self.docNames[j]
+                Jim_dict[Jim_key]=self.JSim[self.getTriangleIndex(i,j)]
+        top5_true_Jim_files = sorted(Jim_dict.items(),key=lambda x:x[1],reverse=True)
+        print(top5_true_Jim_files[0:5])
+        print("使用minhash估计得到的最相似的五对文章是：\n")
+        for i in range(5):
+            print(top5_estJim_files[i][0])
+        print("使用真实jaccard得到的最相似的5对文章是：\n")
+        for i in range(5):
+            print(top5_true_Jim_files[i][0])
 
 
-
-        for i in range(0,numDocs):
-            for j in range(i+1,numDocs):
-
-
-        for i in range(0, numDocs):
-            for j in range(i + 1, numDocs):
-                estJ = self.estJSim[self.getTriangleIndex(i, j)]
-                if estJ > threshold:
-                    s1 = self.docsAsShingleSets[self.docNames[i]]
-                    s2 = self.docsAsShingleSets[self.docNames[j]]
-                    J = (len(s1.intersection(s2)) / len(s1.union(s2)))
-
-                    print("  %5s --> %5s   %.2f     %.2f" % (self.docNames[i], self.docNames[j], estJ, J))
-mh = MinHash(0,numhashes,numDocs)
-mh.convert_document_to_shingles()
-mh.Generate_MinHash_Signatures()
-mh.Compare_All_Signatures()
-mh.display()
-
+    def run(self):
+        self.convert_document_to_shingles()
+        self.Generate_MinHash_Signatures()
+        self.Compare_All_Signatures()
+        self.Calculate_Jaccard_Similarities()
+        self.Get_Top_five_files()
+mh = MinHash(numhashes,numDocs)
+mh.run()

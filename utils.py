@@ -2,10 +2,6 @@ import sys
 import os
 file_contents={}
 
-# for file_name in os.listdir("./en_text"):
-#     with open("./en_text/"+file_name,'r') as f:
-#         file_contents[file_name]+=f.readlines()
-
 for file_name in os.listdir("./en_text"):
     with open("./en_text/"+file_name, "r", encoding="utf-8") as f:
         lines = f.readlines()
