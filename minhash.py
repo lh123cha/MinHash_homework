@@ -26,14 +26,10 @@ class MinHash(object):
     # =============================================================================
     #               Convert Documents To Sets of Shingles
     # =============================================================================
-
+    #使用trigram mode，三个单词进行拼接作为一个shingle
     def convert_document_to_shingles(self):
         print("Shingling articles...")
 
-        # The current shingle ID value to assign to the next new shingle we
-        # encounter. When a shingle gets added to the dictionary, we'll increment this
-        # value.
-        curShingleID = 0
 
         f = open(dataFile, "r",encoding="utf-8")
 
