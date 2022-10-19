@@ -1,10 +1,5 @@
-import os
-import re
 import random
-import time
 import binascii
-from bisect import bisect_right
-from heapq import heappop, heappush
 import sys
 
 numDocs=20
