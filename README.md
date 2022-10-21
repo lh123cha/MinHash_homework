@@ -16,11 +16,11 @@ Minhash.run()
 
 20个哈希函数的情况得到：
 
-![](.\pic\20hashes.png)
+![](https://github.com/lh123cha/MinHash_homework/blob/main/pic/20hashes.png)
 
 100个哈希函数的情况下得到：
 
-![](.\pic\100hashes.png)
+![]([.\pic\100hashes.png](https://github.com/lh123cha/MinHash_homework/blob/main/pic/100hashes.png))
 
 
 
